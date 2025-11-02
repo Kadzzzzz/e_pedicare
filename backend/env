@@ -1,0 +1,15 @@
+# Configuration de l'application
+FLASK_ENV=development
+FLASK_DEBUG=True
+
+# Base de données
+DATABASE_URI=sqlite:///epedicare.db
+
+# Sécurité JWT
+JWT_SECRET_KEY=4b4a984241125abd2614a465ed8ecd6ca0873d927fd9e36a7e0fc28d873ab851
+
+# Durée de validité des tokens (en minutes)
+JWT_ACCESS_TOKEN_EXPIRES=60
+
+# CORS - Origines autorisées (séparées par des virgules)
+CORS_ORIGINS=http://localhost:3000,http://localhost:5000

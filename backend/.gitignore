@@ -13,11 +13,13 @@ ENV/
 instance/
 .webassets-cache
 
-# Database
+# Base de données
 *.db
 *.sqlite
+test_epedicare.db
+epedicare.db
 
-# Environment
+# Variables d'environnement - IMPORTANT !
 .env
 
 # Uploads
@@ -29,3 +31,10 @@ uploads/videos/*
 .idea/
 *.swp
 *.swo
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db

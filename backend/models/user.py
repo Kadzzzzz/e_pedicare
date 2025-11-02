@@ -1,6 +1,4 @@
 from datetime import datetime
-
-from sqlalchemy.testing.pickleable import User
 from werkzeug.security import generate_password_hash, check_password_hash
 
 def create_user_model(db):
