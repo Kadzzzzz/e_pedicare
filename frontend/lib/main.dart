@@ -43,7 +43,7 @@ class _TestPageState extends State<TestPage> {
     try {
       // 2. On fait la requête HTTP GET vers notre backend
       final response = await http.get(
-        Uri.parse('http://localhost:5000/api/hello'),
+        Uri.parse('http://localhost:5000/hello'),
       );
 
       // 3. On vérifie si la requête a réussi (code 200 = OK)
