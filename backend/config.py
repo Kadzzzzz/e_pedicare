@@ -15,11 +15,11 @@ class Config:
     """Configuration de base"""
 
     # Base de données
-    SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URI', 'sqlite:///{os.path.join(DATABASE_DIR, "epedicare.db")}')
+    SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URI', f'sqlite:///{os.path.join(DATABASE_DIR, "epedicare.db")}')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
-    # JWT
-    JWT_SECRET_KEY = os.getenv('JWT_SECRET_KEY')
+    # JWT - IMPORTANT : Valeur par défaut pour le développement
+    JWT_SECRET_KEY = os.getenv('JWT_SECRET_KEY', 'dev-secret-key-change-in-production-12345')
     JWT_ACCESS_TOKEN_EXPIRES = timedelta(minutes=60)
 
 class DevelopmentConfig(Config):
