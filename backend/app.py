@@ -3,8 +3,8 @@ from flask_restful import Api
 from config import config
 from extensions import db, jwt, cors
 
-# Créer l'application
 app = Flask(__name__)
+    
 
 # Charger la configuration
 config_name = 'development'

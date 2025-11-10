@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http; // Import du package HTTP
 import 'dart:convert'; // Pour convertir JSON en objets Dart
+import 'pages/login_page.dart'; // Import de la page de connexion
+
 
 void main() {
   runApp(const MyApp());
@@ -29,51 +31,24 @@ class TestPage extends StatefulWidget {
 }
 
 class _TestPageState extends State<TestPage> {
-  // Variables d'état
+  // 1. DÉCLARATION DES VARIABLES D'ÉTAT ET DE LA FONCTION D'APPEL (Correct)
   String _message = 'Pas encore de message';
   bool _isLoading = false;
 
-  // Fonction pour appeler le backend
   Future<void> _fetchMessage() async {
-    // 1. On informe l'interface qu'on commence le chargement
+    // Le contenu de la fonction _fetchMessage
     setState(() {
       _isLoading = true;
     });
-
-    try {
-      // 2. On fait la requête HTTP GET vers notre backend
-      final response = await http.get(
-        Uri.parse('http://localhost:5000/hello'),
-      );
-
-      // 3. On vérifie si la requête a réussi (code 200 = OK)
-      if (response.statusCode == 200) {
-        // 4. On décode le JSON reçu
-        final data = jsonDecode(response.body);
-
-        // 5. On met à jour l'interface avec le message reçu
-        setState(() {
-          _message = data['message'];
-          _isLoading = false;
-        });
-      } else {
-        // Si le code n'est pas 200, il y a une erreur
-        setState(() {
-          _message = 'Erreur: ${response.statusCode}';
-          _isLoading = false;
-        });
-      }
-    } catch (e) {
-      // 6. Si quelque chose plante (pas de connexion, etc.)
-      setState(() {
-        _message = 'Erreur de connexion: $e';
-        _isLoading = false;
-      });
-    }
+    // ... votre requête HTTP ...
+    // ...
   }
 
+  // 2. MÉTHODE BUILD MANQUANTE (OBLIGATOIRE)
   @override
   Widget build(BuildContext context) {
+    // TOUT LE CODE DE L'INTERFACE UTILISATEUR COMMENCE ICI
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Test Backend Connection'),
@@ -85,7 +60,7 @@ class _TestPageState extends State<TestPage> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // Affichage du message
+              // Affichage du message (utilise _message)
               Text(
                 _message,
                 style: const TextStyle(fontSize: 20),
@@ -93,7 +68,7 @@ class _TestPageState extends State<TestPage> {
               ),
               const SizedBox(height: 30),
 
-              // Bouton pour déclencher la requête
+              // Bouton pour déclencher la requête (utilise _isLoading et _fetchMessage)
               ElevatedButton(
                 onPressed: _isLoading ? null : _fetchMessage,
                 style: ElevatedButton.styleFrom(
@@ -104,16 +79,30 @@ class _TestPageState extends State<TestPage> {
                 ),
                 child: _isLoading
                     ? const SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                  ),
-                )
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                        ),
+                      )
                     : const Text(
-                  'Appeler le Backend',
-                  style: TextStyle(fontSize: 16),
-                ),
+                        'Appeler le Backend',
+                        style: TextStyle(fontSize: 16),
+                      ),
+              ),
+              
+              // Bouton de Navigation (Aller à la Connexion)
+              const SizedBox(height: 15), 
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const LoginPage(), 
+                    ),
+                  );
+                },
+                child: const Text('Aller à la Connexion', style: TextStyle(fontSize: 16)),
               ),
             ],
           ),
