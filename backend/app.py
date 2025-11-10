@@ -38,6 +38,15 @@ app.register_blueprint(auth_bp, url_prefix='/api/auth')
 def test_page():
     return send_from_directory('static', 'test.html')
 
+@app.route('/hello', methods=['GET'])
+def hello_message():
+    """Route de test pour la connexion Flutter"""
+    return jsonify({
+        # Le client Flutter attend cette clé 'message' !
+        'message': 'Hello from Flask! La connexion a réussi.', 
+        'code': 200
+    }), 200
+
 # GESTIONNAIRES D'ERREURS JWT
 
 @jwt.expired_token_loader
