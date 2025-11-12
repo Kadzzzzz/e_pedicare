@@ -28,6 +28,9 @@ class LiveKitService extends ChangeNotifier {
   Map<String, RemoteParticipant> _remoteParticipants = {};
   Map<String, RemoteParticipant> get remoteParticipants => _remoteParticipants;
 
+  // Position actuelle de la caméra
+  CameraPosition _currentCameraPosition = CameraPosition.front;
+
   /// Se connecter à une room LiveKit
   ///
   /// [url] : URL du serveur LiveKit (ex: wss://your-livekit-server.com)
@@ -42,20 +45,24 @@ class LiveKitService extends ChangeNotifier {
   }) async {
     try {
       // Créer la room
-      _room = await LiveKitClient.connect(
-        url,
-        token,
+      _room = Room(
         roomOptions: const RoomOptions(
-          adaptiveStream: true, // Adaptation automatique de la qualité
-          dynacast: true, // Optimisation de la bande passante
-        ),
-        connectOptions: ConnectOptions(
-          autoSubscribe: true, // S'abonner automatiquement aux flux distants
+          adaptiveStream: true,
+          dynacast: true,
         ),
       );
 
       // Écouter les événements de la room
       _setupRoomListeners();
+
+      // Se connecter au serveur LiveKit
+      await _room!.connect(
+        url,
+        token,
+        connectOptions: const ConnectOptions(
+          autoSubscribe: true,
+        ),
+      );
 
       // Publier les flux locaux si demandé
       if (enableCamera || enableMicrophone) {
@@ -86,9 +93,9 @@ class LiveKitService extends ChangeNotifier {
       // Créer et publier le flux vidéo
       if (enableCamera) {
         _localVideoTrack = await LocalVideoTrack.createCameraTrack(
-          const CameraCaptureOptions(
-            cameraPosition: CameraPosition.front,
-            params: VideoParametersPresets.h720_169, // 720p pour haute qualité
+          CameraCaptureOptions(
+            cameraPosition: _currentCameraPosition,
+            params: VideoParametersPresets.h720_169,
           ),
         );
         await _room!.localParticipant?.publishVideoTrack(_localVideoTrack!);
@@ -113,7 +120,6 @@ class LiveKitService extends ChangeNotifier {
   void _setupRoomListeners() {
     if (_room == null) return;
 
-    // Événement: nouveau participant distant rejoint
     _room!.addListener(() {
       final participants = _room!.remoteParticipants;
       _remoteParticipants = {
@@ -126,17 +132,31 @@ class LiveKitService extends ChangeNotifier {
 
   /// Basculer la caméra (avant/arrière)
   Future<void> switchCamera() async {
-    if (_localVideoTrack == null) return;
+    if (_localVideoTrack == null || _room == null) return;
 
     try {
-      final currentPosition = _localVideoTrack!.currentOptions.cameraPosition;
-      final newPosition = currentPosition == CameraPosition.front
+      // Déterminer la nouvelle position
+      _currentCameraPosition = _currentCameraPosition == CameraPosition.front
           ? CameraPosition.back
           : CameraPosition.front;
 
-      await _localVideoTrack!.setCameraPosition(newPosition);
+      // Arrêter l'ancien track
+      await _localVideoTrack!.stop();
+      await _room!.localParticipant?.unpublishTrack(_localVideoTrack!.sid);
+
+      // Créer un nouveau track avec la nouvelle caméra
+      _localVideoTrack = await LocalVideoTrack.createCameraTrack(
+        CameraCaptureOptions(
+          cameraPosition: _currentCameraPosition,
+          params: VideoParametersPresets.h720_169,
+        ),
+      );
+
+      // Publier le nouveau track
+      await _room!.localParticipant?.publishVideoTrack(_localVideoTrack!);
+
       notifyListeners();
-      debugPrint('📷 Caméra basculée: $newPosition');
+      debugPrint('📷 Caméra basculée: $_currentCameraPosition');
     } catch (e) {
       debugPrint('❌ Erreur basculement caméra: $e');
     }
@@ -147,9 +167,14 @@ class LiveKitService extends ChangeNotifier {
     if (_localVideoTrack == null) return;
 
     try {
-      await _localVideoTrack!.enable(!_localVideoTrack!.enabled);
+      if (_localVideoTrack!.muted) {
+        await _localVideoTrack!.unmute();
+        debugPrint('📹 Caméra: ON');
+      } else {
+        await _localVideoTrack!.mute();
+        debugPrint('📹 Caméra: OFF');
+      }
       notifyListeners();
-      debugPrint('📹 Caméra: ${_localVideoTrack!.enabled ? "ON" : "OFF"}');
     } catch (e) {
       debugPrint('❌ Erreur toggle caméra: $e');
     }
@@ -160,13 +185,24 @@ class LiveKitService extends ChangeNotifier {
     if (_localAudioTrack == null) return;
 
     try {
-      await _localAudioTrack!.enable(!_localAudioTrack!.enabled);
+      if (_localAudioTrack!.muted) {
+        await _localAudioTrack!.unmute();
+        debugPrint('🎤 Micro: ON');
+      } else {
+        await _localAudioTrack!.mute();
+        debugPrint('🎤 Micro: OFF');
+      }
       notifyListeners();
-      debugPrint('🎤 Micro: ${_localAudioTrack!.enabled ? "ON" : "OFF"}');
     } catch (e) {
       debugPrint('❌ Erreur toggle micro: $e');
     }
   }
+
+  /// Vérifier si la caméra est activée
+  bool get isCameraEnabled => _localVideoTrack != null && !_localVideoTrack!.muted;
+
+  /// Vérifier si le micro est activé
+  bool get isMicrophoneEnabled => _localAudioTrack != null && !_localAudioTrack!.muted;
 
   /// Obtenir le flux vidéo d'un participant distant
   /// Utile pour afficher la vidéo du client côté praticien
@@ -205,6 +241,7 @@ class LiveKitService extends ChangeNotifier {
 
       // Déconnecter la room
       await _room?.disconnect();
+      await _room?.dispose();
 
       // Nettoyer les références
       _room = null;

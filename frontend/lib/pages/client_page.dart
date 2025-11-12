@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:livekit_client/livekit_client.dart';
-import 'package:provider/provider.dart';
 import '../widgets/app_bar.dart';
 import '../services/livekit_service.dart';
 import '../services/api_service.dart';
@@ -166,9 +165,9 @@ class _ClientPageState extends State<ClientPage> {
           child: Container(
             color: Colors.black,
             child: _liveKitService.localVideoTrack != null
-                ? VideoTrackRenderer(
+                ? VideoTrackWidget(
                     _liveKitService.localVideoTrack!,
-                    fit: RTCVideoViewFit.RTCVideoViewFitContain,
+                    fit: BoxFit.contain,
                   )
                 : const Center(
                     child: Text(
@@ -241,24 +240,24 @@ class _ClientPageState extends State<ClientPage> {
 
               // Toggle caméra
               _buildControlButton(
-                icon: _liveKitService.localVideoTrack?.enabled ?? false
+                icon: _liveKitService.isCameraEnabled
                     ? Icons.videocam
                     : Icons.videocam_off,
                 label: 'Caméra',
                 onPressed: () => _liveKitService.toggleCamera(),
-                color: _liveKitService.localVideoTrack?.enabled ?? false
+                color: _liveKitService.isCameraEnabled
                     ? Colors.blue
                     : Colors.grey,
               ),
 
               // Toggle micro
               _buildControlButton(
-                icon: _liveKitService.localAudioTrack?.enabled ?? false
+                icon: _liveKitService.isMicrophoneEnabled
                     ? Icons.mic
                     : Icons.mic_off,
                 label: 'Micro',
                 onPressed: () => _liveKitService.toggleMicrophone(),
-                color: _liveKitService.localAudioTrack?.enabled ?? false
+                color: _liveKitService.isMicrophoneEnabled
                     ? Colors.blue
                     : Colors.grey,
               ),
