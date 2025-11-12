@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http; // Import du package HTTP
 import 'dart:convert'; // Pour convertir JSON en objets Dart
-import 'pages/login_page.dart'; // Import de la page de connexion
-
+import '../pages/login_page.dart'; // Import de la page de connexion
+import '../widgets/app_bar.dart';
 
 void main() {
   runApp(const MyApp());
@@ -31,29 +31,45 @@ class TestPage extends StatefulWidget {
 }
 
 class _TestPageState extends State<TestPage> {
-  // 1. DÉCLARATION DES VARIABLES D'ÉTAT ET DE LA FONCTION D'APPEL (Correct)
   String _message = 'Pas encore de message';
   bool _isLoading = false;
 
   Future<void> _fetchMessage() async {
-    // Le contenu de la fonction _fetchMessage
     setState(() {
       _isLoading = true;
     });
-    // ... votre requête HTTP ...
-    // ...
+    try {
+      final response = await http.get(
+        Uri.parse('http://localhost:5000/hello'),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        setState(() {
+          _message = data['message'];
+        });
+      } else {
+        setState(() {
+          _message = 'Erreur HTTP: ${response.statusCode}';
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _message = 'Erreur de connexion: Backend non disponible.';
+      });
+    }
+
+    setState(() {
+      _isLoading = false;
+    });
   }
 
-  // 2. MÉTHODE BUILD MANQUANTE (OBLIGATOIRE)
   @override
   Widget build(BuildContext context) {
-    // TOUT LE CODE DE L'INTERFACE UTILISATEUR COMMENCE ICI
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Test Backend Connection'),
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-      ),
+      appBar: CustomAppBar(title: 'Test Backend Connection'),
+
       body: Center(
         child: Padding(
           padding: const EdgeInsets.all(20.0),
