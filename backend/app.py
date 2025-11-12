@@ -30,9 +30,11 @@ with app.app_context():
 # Enregistrer les routes
 from routes.index import index_bp
 from routes.auth import auth_bp
+from routes.video import video_bp
 
 app.register_blueprint(index_bp, url_prefix='/api')
 app.register_blueprint(auth_bp, url_prefix='/api/auth')
+app.register_blueprint(video_bp)  # Déjà préfixé dans le blueprint
 
 @app.route('/test')
 def test_page():

@@ -22,6 +22,13 @@ class Config:
     JWT_SECRET_KEY = os.getenv('JWT_SECRET_KEY', 'dev-secret-key-change-in-production-12345')
     JWT_ACCESS_TOKEN_EXPIRES = timedelta(minutes=60)
 
+    # LiveKit Configuration
+    # Pour le POC, créez un compte gratuit sur https://livekit.io/cloud
+    # Puis récupérez vos clés API depuis le dashboard
+    LIVEKIT_URL = os.getenv('LIVEKIT_URL', 'wss://your-project.livekit.cloud')
+    LIVEKIT_API_KEY = os.getenv('LIVEKIT_API_KEY', 'your-api-key')
+    LIVEKIT_API_SECRET = os.getenv('LIVEKIT_API_SECRET', 'your-api-secret')
+
 class DevelopmentConfig(Config):
     """Configuration pour le développement"""
     DEBUG = True

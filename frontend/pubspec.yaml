@@ -37,6 +37,18 @@ dependencies:
   http: ^1.2.0
   camera: ^0.10.5+9
 
+  # LiveKit for real-time video streaming
+  livekit_client: ^2.2.0
+
+  # State management
+  provider: ^6.1.1
+
+  # Permissions handling
+  permission_handler: ^11.3.0
+
+  # Shared preferences for token storage
+  shared_preferences: ^2.2.2
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
