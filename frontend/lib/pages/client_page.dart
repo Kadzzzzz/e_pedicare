@@ -1,55 +1,110 @@
 import 'package:flutter/material.dart';
 import '../widgets/app_bar.dart'; 
+import 'package:camera/camera.dart';
 
-// 1. Le StatefulWidget : Il est immuable et crée l'objet State.
+List<CameraDescription> cameras = []; // Liste globale des caméras disponibles
+
+Future<void> initCameras() async { // Fonction pour initialiser les caméras
+  try {
+    WidgetsFlutterBinding.ensureInitialized();
+    cameras = await availableCameras();
+  } on CameraException catch (e) {
+    print('Erreur lors de l\'initialisation des caméras : $e');
+  }
+}
+
+
+
 class ClientPage extends StatefulWidget {
-  // Le constructeur est souvent utilisé pour passer des données (arguments)
   const ClientPage({super.key});
 
   @override
   State<ClientPage> createState() => _ClientPageState();
 }
 
-// 2. Le State : C'est ici que les données qui changent (l'état) et l'UI sont gérées.
 class _ClientPageState extends State<ClientPage> {
-  // ** Déclaration de l'état (données qui peuvent changer) **
-  int _compteur = 0;
+  CameraController? _controller;
+  Future<void>? _initializeControllerFuture;
 
-  // ** Méthode pour modifier l'état **
-  void _incrementerCompteur() {
-    // setState notifie Flutter que l'état a changé et qu'il faut reconstruire l'UI.
-    setState(() {
-      _compteur++;
+  @override
+  void initState() {
+    super.initState();
+    _initializeCamera();
+  }
+
+  Future<void> _initializeCamera() async {
+    // Si aucune caméra n'est disponible, ou si la liste est vide (non initialisée)
+    if (cameras.isEmpty) {
+      await initCameras(); // Tentez d'initialiser les caméras si ce n'est pas déjà fait
+      if (cameras.isEmpty) {
+        print('Aucune caméra disponible.');
+        // Gérer l'absence de caméra (afficher un message, etc.)
+        return;
+      }
+    }
+
+    // Choisir la première caméra disponible (généralement la caméra arrière)
+    // Pour la caméra frontale, vous pouvez chercher par `CameraLensDirection.front`
+    CameraDescription frontCamera = cameras.firstWhere(
+      (camera) => camera.lensDirection == CameraLensDirection.front,
+    );
+
+    _controller = CameraController(
+      frontCamera, // Utilisez la caméra frontale
+      ResolutionPreset.medium, // Qualité de la vidéo (low, medium, high, max)
+      enableAudio: false, // Active l'audio si nécessaire
+    );
+
+    // Initialise le contrôleur. Retourne un Future.
+    _initializeControllerFuture = _controller!.initialize().then((_) {
+      if (!mounted) {
+        return;
+      }
+      setState(() {}); // Met à jour l'UI après l'initialisation
+    }).catchError((e) {
+      if (e is CameraException) {
+        switch (e.code) {
+          case 'CameraAccessDenied':
+            print('Accès à la caméra refusé.');
+            break;
+          default:
+            print('Erreur caméra inconnue: ${e.description}');
+            break;
+        }
+      }
     });
   }
 
-  // ** La méthode build() : Décrit l'UI **
+  @override
+  void dispose() {
+    // Assurez-vous de disposer du contrôleur lorsque le widget est supprimé.
+    _controller?.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
-    // La propriété 'widget' permet d'accéder aux propriétés du StatefulWidget (MaPageDynamique)
-    return Scaffold(
-      appBar: const CustomAppBar(title: 'Espace Client'), 
+    // Si le contrôleur n'est pas encore initialisé, affichez un indicateur de chargement.
+    if (_initializeControllerFuture == null || _controller == null || !_controller!.value.isInitialized) {
+      return Scaffold(
+        appBar: const CustomAppBar(title: 'Espace Praticien'),
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
 
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text(
-              'Vous avez appuyé sur le bouton :',
-            ),
-            Text(
-              // Affichage de l'état actuel
-              '$_compteur',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-          ],
-        ),
-      ),
-      // Bouton flottant pour déclencher la modification de l'état
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementerCompteur, // Appel de la méthode qui change l'état
-        tooltip: 'Incrémenter',
-        child: const Icon(Icons.add),
+    return Scaffold(
+      appBar: const CustomAppBar(title: 'Espace Praticien'),
+      body: FutureBuilder<void>(
+        future: _initializeControllerFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.done) {
+            // Si le Future est terminé, affichez la prévisualisation.
+            return CameraPreview(_controller!);
+          } else {
+            // Sinon, affichez un indicateur de chargement.
+            return const Center(child: CircularProgressIndicator());
+          }
+        },
       ),
     );
   }

@@ -4,7 +4,6 @@ import '../pages/login_page.dart';
 import '../main.dart'; 
 import '../pages/profile_page.dart'; 
 import '../pages/praticien_page.dart';
-import '../pages/client_page.dart';
 
 
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
