@@ -165,9 +165,9 @@ class _ClientPageState extends State<ClientPage> {
           child: Container(
             color: Colors.black,
             child: _liveKitService.localVideoTrack != null
-                ? VideoTrackWidget(
+                ? VideoTrackRenderer(
                     _liveKitService.localVideoTrack!,
-                    fit: BoxFit.contain,
+                    fit: VideoViewFit.contain,
                   )
                 : const Center(
                     child: Text(

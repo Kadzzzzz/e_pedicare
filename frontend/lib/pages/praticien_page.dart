@@ -296,9 +296,9 @@ class _PraticienPageState extends State<PraticienPage> {
     return Stack(
       children: [
         // Flux vidéo principal
-        VideoTrackWidget(
+        VideoTrackRenderer(
           videoTrack,
-          fit: BoxFit.contain,
+          fit: VideoViewFit.contain,
         ),
 
         // Indicateur de flux actif

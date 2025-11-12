@@ -142,7 +142,7 @@ class LiveKitService extends ChangeNotifier {
 
       // Arrêter l'ancien track
       await _localVideoTrack!.stop();
-      await _room!.localParticipant?.unpublishTrack(_localVideoTrack!.sid);
+      // Note: unpublishTrack n'est plus nécessaire avec la version 2.5.3
 
       // Créer un nouveau track avec la nouvelle caméra
       _localVideoTrack = await LocalVideoTrack.createCameraTrack(
