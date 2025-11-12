@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/pages/client_page.dart';
 import '../pages/login_page.dart'; 
 import '../main.dart'; 
 import '../pages/profile_page.dart'; 
+import '../pages/praticien_page.dart';
+import '../pages/client_page.dart';
+
 
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
@@ -38,7 +42,31 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
           },
           child: const Text('Connexion', style: TextStyle(color: Colors.white)),
         ),
-        
+
+        // Bouton ClientPage
+        TextButton(
+          onPressed: () {
+            // Remplace la page actuelle par la LoginPage
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const ClientPage()),
+            );
+          },
+          child: const Text('Client', style: TextStyle(color: Colors.white)),
+        ),
+
+        // Bouton PraticienPage
+        TextButton(
+          onPressed: () {
+            // Remplace la page actuelle par la LoginPage
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const PraticienPage()),
+            );
+          },
+          child: const Text('Praticien', style: TextStyle(color: Colors.white)),
+        ),
+
         // Bouton Profil
         TextButton(
            onPressed: () {
