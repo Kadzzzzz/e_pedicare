@@ -1,6 +1,7 @@
 import os
 from datetime import timedelta
 from dotenv import load_dotenv
+import sys
 
 load_dotenv()
 
@@ -11,11 +12,22 @@ DATABASE_DIR = os.path.join(BASE_DIR, 'database')
 # Créer le dossier database s'il n'existe pas
 os.makedirs(DATABASE_DIR, exist_ok=True)
 
+# Chemin complet vers le fichier database
+DB_PATH = os.path.join(DATABASE_DIR, 'epedicare.db')
+
+# Construire l'URI SQLite correctement selon l'OS
+if sys.platform.startswith('win'):
+    # Windows nécessite 4 slashes pour chemin absolu
+    SQLALCHEMY_DATABASE_URI_DEFAULT = f'sqlite:///{DB_PATH.replace(os.sep, "/")}'
+else:
+    # Unix/Linux/Mac
+    SQLALCHEMY_DATABASE_URI_DEFAULT = f'sqlite:///{DB_PATH}'
+
 class Config:
     """Configuration de base"""
 
     # Base de données
-    SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URI', f'sqlite:///{os.path.join(DATABASE_DIR, "epedicare.db")}')
+    SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URI', SQLALCHEMY_DATABASE_URI_DEFAULT)
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
     # JWT - IMPORTANT : Valeur par défaut pour le développement
