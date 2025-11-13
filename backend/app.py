@@ -85,5 +85,6 @@ def init_db():
 # DÉMARRAGE
 
 if __name__ == '__main__':
-    init_db()
+    # init_db()  # Désactivé pour le POC - pas besoin de DB pour le streaming vidéo
+    print("⚠️  Base de données désactivée - POC streaming vidéo uniquement")
     app.run(debug=True, host='0.0.0.0', port=5000)

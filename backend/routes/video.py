@@ -2,7 +2,6 @@
 Routes API pour la gestion des sessions vidéo LiveKit
 """
 from flask import Blueprint, request, jsonify, current_app
-from flask_jwt_extended import jwt_required, get_jwt_identity
 from livekit import api
 from datetime import datetime, timedelta
 
@@ -14,10 +13,9 @@ active_sessions = {}
 
 
 @video_bp.route('/create-session', methods=['POST'])
-@jwt_required()
 def create_session():
     """
-    Créer une nouvelle session vidéo
+    Créer une nouvelle session vidéo (POC - sans authentification)
 
     Body JSON:
         - room_name: Nom de la room LiveKit (ex: "session-parent-123")
@@ -37,8 +35,8 @@ def create_session():
         if not room_name:
             return jsonify({'error': 'room_name requis'}), 400
 
-        # Récupérer l'identité de l'utilisateur (depuis le JWT)
-        current_user = get_jwt_identity()
+        # Pour le POC, utiliser un ID générique
+        current_user = 'poc-user'
 
         # Générer un token LiveKit pour le parent/client
         token = api.AccessToken(
@@ -84,10 +82,9 @@ def create_session():
 
 
 @video_bp.route('/join-session', methods=['POST'])
-@jwt_required()
 def join_session():
     """
-    Rejoindre une session vidéo existante
+    Rejoindre une session vidéo existante (POC - sans authentification)
 
     Body JSON:
         - room_name: Nom de la room à rejoindre
@@ -106,8 +103,8 @@ def join_session():
         if not room_name:
             return jsonify({'error': 'room_name requis'}), 400
 
-        # Récupérer l'identité de l'utilisateur
-        current_user = get_jwt_identity()
+        # Pour le POC, utiliser un ID générique
+        current_user = 'poc-practitioner'
 
         # Générer un token LiveKit pour le praticien
         token = api.AccessToken(
@@ -142,7 +139,6 @@ def join_session():
 
 
 @video_bp.route('/sessions/active', methods=['GET'])
-@jwt_required()
 def get_active_sessions():
     """
     Obtenir la liste des sessions actives
@@ -175,7 +171,6 @@ def get_active_sessions():
 
 
 @video_bp.route('/end-session', methods=['POST'])
-@jwt_required()
 def end_session():
     """
     Terminer une session vidéo
@@ -205,49 +200,4 @@ def end_session():
 
     except Exception as e:
         current_app.logger.error(f"Erreur fin session: {str(e)}")
-        return jsonify({'error': f'Erreur serveur: {str(e)}'}), 500
-
-
-@video_bp.route('/token/generate', methods=['POST'])
-def generate_token_simple():
-    """
-    Générer un token simple (pour tests sans authentification)
-    ⚠️ À SUPPRIMER EN PRODUCTION - Seulement pour le POC
-
-    Body JSON:
-        - room_name: Nom de la room
-        - participant_name: Nom du participant
-        - identity: Identité unique du participant
-    """
-    try:
-        data = request.get_json()
-        room_name = data.get('room_name', 'test-room')
-        participant_name = data.get('participant_name', 'Test User')
-        identity = data.get('identity', f'user-{datetime.now().timestamp()}')
-
-        token = api.AccessToken(
-            current_app.config['LIVEKIT_API_KEY'],
-            current_app.config['LIVEKIT_API_SECRET']
-        )
-
-        token.with_identity(identity) \
-             .with_name(participant_name) \
-             .with_grants(api.VideoGrants(
-                 room_join=True,
-                 room=room_name,
-                 can_publish=True,
-                 can_subscribe=True,
-             ))
-
-        token.with_ttl(timedelta(hours=1))
-
-        return jsonify({
-            'token': token.to_jwt(),
-            'livekit_url': current_app.config['LIVEKIT_URL'],
-            'room_name': room_name,
-            'identity': identity
-        }), 200
-
-    except Exception as e:
-        current_app.logger.error(f"Erreur génération token: {str(e)}")
         return jsonify({'error': f'Erreur serveur: {str(e)}'}), 500

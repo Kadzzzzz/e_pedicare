@@ -35,10 +35,10 @@ class ApiService {
     await prefs.remove('jwt_token');
   }
 
-  /// Headers HTTP avec authentification
+  /// Headers HTTP (sans authentification pour le POC)
   Map<String, String> get _headers => {
         'Content-Type': 'application/json',
-        if (_jwtToken != null) 'Authorization': 'Bearer $_jwtToken',
+        // Pas d'auth pour le POC
       };
 
   /// Login utilisateur
