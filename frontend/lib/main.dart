@@ -3,8 +3,22 @@ import 'package:http/http.dart' as http; // Import du package HTTP
 import 'dart:convert'; // Pour convertir JSON en objets Dart
 import '../pages/login_page.dart'; // Import de la page de connexion
 import '../widgets/app_bar.dart';
+import 'package:frontend/pages/client_page.dart';
 
-void main() {
+Future<void> initCameras() async {
+  // ... (copiez la fonction initCameras de client_page.dart ici ou assurez-vous qu'elle est bien importée)
+  // Ou mieux, mettez-la dans client_page.dart et importez-la
+  try {
+    WidgetsFlutterBinding.ensureInitialized();
+    cameras = await availableCameras();
+  } on CameraException catch (e) {
+    print('Erreur lors de l\'initialisation des caméras : $e');
+  }
+}
+
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await initCameras();
   runApp(const MyApp());
 }
 

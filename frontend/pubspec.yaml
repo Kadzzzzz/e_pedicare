@@ -35,7 +35,11 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
   http: ^1.2.0
-  camera: ^0.10.5+9
+  camera: ^0.10.5+9 # Pour la gestion de la caméra
+  
+  flutter_webrtc: ^0.10.0 # Pour la vidéo et le WebRTC
+  
+  socket_io_client: ^2.0.3 # Pour la connexion WebSocket à Flask-SocketIO
 
 dev_dependencies:
   flutter_test:
