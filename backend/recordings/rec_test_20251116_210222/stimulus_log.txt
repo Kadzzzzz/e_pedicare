@@ -1,0 +1,37 @@
+============================================================
+    JOURNAL DES STIMULI VISUELS - e-PediCare
+============================================================
+
+Session ID: rec_test_20251116_210222
+Démarrage: 2025-11-16T21:02:22.159195
+Participant: praticien
+Room: test
+
+------------------------------------------------------------
+ÉVÉNEMENTS:
+------------------------------------------------------------
+
+00:04 - unknown (statique) - DÉMARRÉ
+00:07 - unknown (statique) - ENDED
+00:08 - unknown (statique) - DÉMARRÉ
+00:10 - unknown (statique) - ENDED
+00:12 - unknown (statique) - DÉMARRÉ
+00:16 - unknown (statique) - ENDED
+00:17 - unknown (statique) - DÉMARRÉ
+00:20 - unknown (statique) - ENDED
+00:20 - unknown (statique) - DÉMARRÉ
+00:25 - unknown (statique) - ENDED
+00:26 - unknown (statique) - DÉMARRÉ
+00:29 - unknown (statique) - ENDED
+00:31 - unknown (statique) - DÉMARRÉ
+00:34 - unknown (statique) - ENDED
+00:37 - unknown (statique) - DÉMARRÉ
+00:40 - unknown (statique) - ENDED
+00:41 - unknown (statique) - DÉMARRÉ
+00:43 - unknown (statique) - ENDED
+00:45 - unknown (statique) - DÉMARRÉ
+00:49 - unknown (statique) - ENDED
+
+============================================================
+Total d'événements: 20
+============================================================
