@@ -3,12 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:livekit_client/livekit_client.dart';
 import 'package:provider/provider.dart'; // Si vous utilisez Provider
 import '../services/livekit_service.dart';
+import '../widgets/app_bar.dart'; 
 
 class PraticienPage extends StatelessWidget {
   const PraticienPage({super.key});
   
-  // TOKEN DÉFINI MANUELLEMENT POUR LE TEST
-  final String praticienToken = 'votre_token_praticien_ici'; // Remplacer par le token réel
+ final String praticienIdentity = 'praticien_1';
 
   @override
   Widget build(BuildContext context) {
@@ -16,11 +16,11 @@ class PraticienPage extends StatelessWidget {
     
     // Tentative de connexion si pas déjà connecté
     if (livekitService.room == null) {
-      livekitService.joinRoom(praticienToken);
+      livekitService.joinRoom(praticienIdentity);
     }
     
     return Scaffold(
-      appBar: AppBar(title: Text(titre)),
+      appBar: CustomAppBar(title: 'Espace Praticien'), // Utilisation de CustomAppBar
       body: Consumer<LiveKitService>(
         builder: (context, service, child) {
           if (service.error != null) {

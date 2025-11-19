@@ -30,9 +30,7 @@ class _ClientPageState extends State<ClientPage> {
   CameraController? _controller;
   Future<void>? _initializeControllerFuture;
 
-  // --- 1. CONFIGURATION LIVEKIT (TOKENS DE TEST) ---
-  // Remplacez par vos propres tokens pour une utilisation réelle !
-  final String clientToken = 'votre_token_client_ici'; 
+  final String clientIdentity = 'client_1';
 
   @override
   void initState() {
@@ -54,7 +52,7 @@ class _ClientPageState extends State<ClientPage> {
     
     if (livekitService.room == null) {
         // ÉTAPE 1 : Connexion à la salle LiveKit
-        await livekitService.joinRoom(clientToken);
+        await livekitService.joinRoom(clientIdentity);
     }
 
     if (livekitService.room != null) {
