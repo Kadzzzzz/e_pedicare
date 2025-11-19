@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http; // Import du package HTTP
 import 'dart:convert'; // Pour convertir JSON en objets Dart
 import '../pages/login_page.dart'; // Import de la page de connexion
 import '../widgets/app_bar.dart';
+import 'package:camera/camera.dart'; // Import du package camera
 import 'package:frontend/pages/client_page.dart';
 
 Future<void> initCameras() async {
@@ -19,7 +20,12 @@ Future<void> initCameras() async {
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await initCameras();
-  runApp(const MyApp());
+  runApp(
+    ChangeNotifierProvider(
+      create: (context) => LiveKitService(livekitUrl),
+      child: const MonApplication(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {

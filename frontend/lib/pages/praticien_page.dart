@@ -1,55 +1,59 @@
+// Assurez-vous d'utiliser un widget pour gérer l'état (ChangeNotifierProvider/Provider)
 import 'package:flutter/material.dart';
-import '../widgets/app_bar.dart'; 
+import 'package:livekit_client/livekit_client.dart';
+import 'package:provider/provider.dart'; // Si vous utilisez Provider
+import '../services/livekit_service.dart';
 
-// 1. Le StatefulWidget : Il est immuable et crée l'objet State.
-class PraticienPage extends StatefulWidget {
-  // Le constructeur est souvent utilisé pour passer des données (arguments)
+class PraticienPage extends StatelessWidget {
   const PraticienPage({super.key});
+  
+  // TOKEN DÉFINI MANUELLEMENT POUR LE TEST
+  final String praticienToken = 'votre_token_praticien_ici'; // Remplacer par le token réel
 
-  @override
-  State<PraticienPage> createState() => _PraticienPageState();
-}
-
-// 2. Le State : C'est ici que les données qui changent (l'état) et l'UI sont gérées.
-class _PraticienPageState extends State<PraticienPage> {
-  // ** Déclaration de l'état (données qui peuvent changer) **
-  int _compteur = 0;
-
-  // ** Méthode pour modifier l'état **
-  void _incrementerCompteur() {
-    // setState notifie Flutter que l'état a changé et qu'il faut reconstruire l'UI.
-    setState(() {
-      _compteur++;
-    });
-  }
-
-  // ** La méthode build() : Décrit l'UI **
   @override
   Widget build(BuildContext context) {
-    // La propriété 'widget' permet d'accéder aux propriétés du StatefulWidget (MaPageDynamique)
+    final livekitService = Provider.of<LiveKitService>(context, listen: false);
+    
+    // Tentative de connexion si pas déjà connecté
+    if (livekitService.room == null) {
+      livekitService.joinRoom(praticienToken);
+    }
+    
     return Scaffold(
-      appBar: const CustomAppBar(title: 'Espace Praticien'), 
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text(
-              'Vous avez appuyé sur le bouton :',
-            ),
-            Text(
-              // Affichage de l'état actuel
-              '$_compteur',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-          ],
-        ),
+      appBar: AppBar(title: Text(titre)),
+      body: Consumer<LiveKitService>(
+        builder: (context, service, child) {
+          if (service.error != null) {
+            return Center(child: Text('Erreur: ${service.error}'));
+          }
+          
+          if (service.room?.localParticipant == null || service.room!.localParticipant.isConnecting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          
+          // --- Affichage de la vidéo du Client ---
+          if (service.remoteTrack != null) {
+            // VideoRenderer est le widget qui affiche le flux LiveKit
+            return VideoRenderer(service.remoteTrack as VideoTrack);
+          } else {
+            return const Center(child: Text('En attente du Client...'));
+          }
+        },
       ),
-      // Bouton flottant pour déclencher la modification de l'état
       floatingActionButton: FloatingActionButton(
-        onPressed: _incrementerCompteur, // Appel de la méthode qui change l'état
-        tooltip: 'Incrémenter',
-        child: const Icon(Icons.add),
+        onPressed: livekitService.disconnect,
+        child: const Icon(Icons.call_end),
       ),
     );
   }
 }
+
+// NOTE : N'oubliez pas d'envelopper votre MaterialApp avec le ChangeNotifierProvider :
+/*
+void main() {
+  runApp(ChangeNotifierProvider(
+    create: (context) => LiveKitService(livekitUrl),
+    child: const MonApplication(),
+  ));
+}
+*/
