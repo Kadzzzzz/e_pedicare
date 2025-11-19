@@ -3,6 +3,11 @@ Flask==2.3.3
 Flask-RESTful==0.3.10
 Flask-SQLAlchemy==3.0.5
 Flask-Cors==4.0.0
+Flask-SocketIO==5.3.4
+python-socketio==5.9.0
+
+# LiveKit pour vidéo (SFU - tout passe par le serveur)
+livekit-api==0.6.1
 
 # Authentification et sécurité
 Flask-JWT-Extended==4.5.3
