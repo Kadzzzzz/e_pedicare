@@ -36,13 +36,10 @@ dependencies:
   cupertino_icons: ^1.0.8
   http: ^1.2.0
   camera: ^0.10.5+9 # Pour la gestion de la caméra
-
-  # LiveKit pour la vidéo (tout passe par le serveur, pas de P2P)
-  livekit_client: ^2.2.0
-
-  # Pour le WebRTC P2P (ancien POC)
-  flutter_webrtc: ^0.10.0
-  socket_io_client: ^2.0.3
+  
+  flutter_webrtc: ^0.10.0 # Pour la vidéo et le WebRTC
+  
+  socket_io_client: ^2.0.3 # Pour la connexion WebSocket à Flask-SocketIO
 
 dev_dependencies:
   flutter_test:
