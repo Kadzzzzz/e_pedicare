@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
-import 'pages/poc_patient_page.dart';
-import 'pages/poc_practitioner_page.dart';
+import 'pages/livekit_patient_page.dart';
+import 'pages/livekit_practitioner_page.dart';
 
-/// Point d'entrée pour le POC WebRTC
-/// Version ultra-simple sans complexité
+/// Point d'entrée pour le POC LiveKit
+/// Version ultra-simple - Tout passe par le serveur (pas de P2P)
+/// Permet l'enregistrement et le traitement des vidéos
 void main() {
   runApp(const PocApp());
 }
@@ -14,7 +15,7 @@ class PocApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'e-PediCare POC WebRTC',
+      title: 'e-PediCare POC LiveKit',
       theme: ThemeData(
         primarySwatch: Colors.blue,
         useMaterial3: true,
@@ -59,7 +60,7 @@ class PocHomePage extends StatelessWidget {
               ),
               const SizedBox(height: 10),
               const Text(
-                'Visioconférence Patient ↔ Praticien',
+                'Visioconférence Patient ↔ Praticien\n(via serveur LiveKit)',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 18,
@@ -74,7 +75,7 @@ class PocHomePage extends StatelessWidget {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => const PocPatientPage(),
+                      builder: (context) => const LiveKitPatientPage(),
                     ),
                   );
                 },
@@ -98,7 +99,7 @@ class PocHomePage extends StatelessWidget {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => const PocPractitionerPage(),
+                      builder: (context) => const LiveKitPractitionerPage(),
                     ),
                   );
                 },
@@ -138,7 +139,8 @@ class PocHomePage extends StatelessWidget {
                     Text(
                       '1. Le Patient crée une session avec un ID\n'
                       '2. Le Praticien rejoint avec le même ID\n'
-                      '3. La vidéo du patient s\'affiche chez le praticien',
+                      '3. La vidéo passe par le serveur LiveKit\n'
+                      '4. Enregistrement et traitement possibles',
                       style: TextStyle(fontSize: 14),
                     ),
                   ],
