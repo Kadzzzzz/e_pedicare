@@ -49,16 +49,15 @@ class LiveKitService extends ChangeNotifier {
     try {
       _room = Room(
         // Configuration minimale pour la connexion
-        options: const RoomOptions(
-          defaultCameraCaptureOptions: CameraCaptureOptions(
-            resolution: VideoDimensions(width: 640, height: 480),
-            cameraPosition: CameraPosition.front, // Utilise la caméra frontale par défaut
-          ),
+        defaultCameraCaptureOptions: const CameraCaptureOptions(
+      // La résolution est définie en tant que propriété 'dimensions'
+      dimensions: VideoDimensions(640, 480), // 🚨 2. VideoDimensions prend deux arguments positionnels
+      cameraPosition: CameraPosition.front,
         ),
       );
       _room!.addListener(_onRoomEvent);
       
-      await _room!.connect(livekitUrl, token!, fastConnect: true);
+      _room!.events.listen(_onRoomEvent);
       
       notifyListeners();
       print('✅ LiveKit connecté en tant que $identity');
@@ -82,13 +81,14 @@ class LiveKitService extends ChangeNotifier {
       }
     } 
     // Quand l'utilisateur publie sa propre piste locale
-    else if (event is LocalTrackPublishedEvent) {
-      if (event.track is VideoTrack) {
-        localTrack = event.track as VideoTrack;
+    } else if (event is LocalTrackPublishedEvent) {
+    // La piste est maintenant accessible via la propriété 'publication'
+    if (event.publication.track is VideoTrack) { 
+        localTrack = event.publication.track as VideoTrack;
         print('Vidéo locale publiée.');
         notifyListeners();
-      }
     }
+}
     // Gérer la déconnexion, etc.
     else if (event is RoomDisconnectedEvent || event is ParticipantDisconnectedEvent) {
       print('Déconnexion détectée.');

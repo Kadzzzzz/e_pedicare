@@ -23,6 +23,7 @@ aniso8601==9.0.1
 six==1.16.0
 
 # LiveKit
-livekit  # Le package Python officiel de LiveKit
+LiveKit  # Le package Python officiel de LiveKit
+livekit-api
 
 

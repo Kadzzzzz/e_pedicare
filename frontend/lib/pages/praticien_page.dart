@@ -27,14 +27,14 @@ class PraticienPage extends StatelessWidget {
             return Center(child: Text('Erreur: ${service.error}'));
           }
           
-          if (service.room?.localParticipant == null || service.room!.localParticipant.isConnecting) {
+          if (service.room?.localParticipant == null || service.room!.connectionState != RoomState.connected) {
             return const Center(child: CircularProgressIndicator());
           }
           
           // --- Affichage de la vidéo du Client ---
           if (service.remoteTrack != null) {
             // VideoRenderer est le widget qui affiche le flux LiveKit
-            return VideoRenderer(service.remoteTrack as VideoTrack);
+            return VideoTrackRenderer(service.remoteTrack as VideoTrack);
           } else {
             return const Center(child: Text('En attente du Client...'));
           }
@@ -47,13 +47,3 @@ class PraticienPage extends StatelessWidget {
     );
   }
 }
-
-// NOTE : N'oubliez pas d'envelopper votre MaterialApp avec le ChangeNotifierProvider :
-/*
-void main() {
-  runApp(ChangeNotifierProvider(
-    create: (context) => LiveKitService(livekitUrl),
-    child: const MonApplication(),
-  ));
-}
-*/

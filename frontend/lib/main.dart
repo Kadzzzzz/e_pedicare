@@ -5,6 +5,8 @@ import '../pages/login_page.dart'; // Import de la page de connexion
 import '../widgets/app_bar.dart';
 import 'package:camera/camera.dart'; // Import du package camera
 import 'package:frontend/pages/client_page.dart';
+import 'package:provider/provider.dart';
+import 'package:frontend/services/livekit_service.dart';
 
 Future<void> initCameras() async {
   // ... (copiez la fonction initCameras de client_page.dart ici ou assurez-vous qu'elle est bien importée)
@@ -22,8 +24,8 @@ Future<void> main() async {
   await initCameras();
   runApp(
     ChangeNotifierProvider(
-      create: (context) => LiveKitService(livekitUrl),
-      child: const MonApplication(),
+      create: (context) => LiveKitService(),
+      child: const MyApp(),
     ),
   );
 }

@@ -1,6 +1,6 @@
 from flask import Flask, jsonify, request, send_from_directory # Ajout de 'request'
 from flask_restful import Api
-from livekit.protocol import AccessToken, VideoGrants 
+from livekit.api import AccessToken, VideoGrants 
 from config import config
 from extensions import db, jwt, cors
 

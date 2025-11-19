@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'package:provider/provider.dart'; // Nécessaire pour accéder au LiveKitService
 import '../widgets/app_bar.dart'; 
-import 'package:livekit_client/livekit_client.dart';
+import 'package:livekit_client/livekit_client.dart' hide ConnectionState;
 import '../services/livekit_service.dart'; // Assurez-vous que ce chemin est correct
 
 // La liste des caméras (déjà existante)
