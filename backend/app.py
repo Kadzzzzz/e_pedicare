@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, request, send_from_directory # Ajout de 'request'
+from flask import Flask, jsonify, request, send_from_directory
 from flask_restful import Api
 from livekit.api import AccessToken, VideoGrants 
 from config import config
@@ -19,79 +19,86 @@ cors.init_app(app)
 # Utilisez ces clés car votre serveur LiveKit est lancé avec --dev
 LIVEKIT_API_KEY = "devkey"
 LIVEKIT_API_SECRET = "secret"
-LIVEKIT_ROOM_NAME = "consultation_unique" # Nom de la salle partagée
+LIVEKIT_ROOM_NAME = "consultation_unique"  # Nom de la salle partagée
 
 # Fonction de génération de token LiveKit
 def generate_livekit_token(identity: str) -> str:
     """Génère un token JWT LiveKit pour l'identité donnée."""
-    grants = VideoGrants(
-        room_join=True,
-        room=LIVEKIT_ROOM_NAME,
-        can_publish=True,
-        can_subscribe=True
-    )
     
-    token = AccessToken(LIVEKIT_API_KEY, LIVEKIT_API_SECRET).with_grants(grants).to_jwt(
-        identity=identity,
-        name=identity
-    )
-    return token
+    # Créer le token directement avec tous les paramètres
+    token = AccessToken(LIVEKIT_API_KEY, LIVEKIT_API_SECRET) \
+        .with_identity(identity) \
+        .with_name(identity) \
+        .with_grants(VideoGrants(
+            room_join=True,
+            room=LIVEKIT_ROOM_NAME,
+            can_publish=True,
+            can_subscribe=True
+        ))
+    
+    return token.to_jwt()
 
 
 # Import et initialisation des modèles dans le contexte de l'app
 with app.app_context():
-     from models import init_models
+    from models import init_models
+    User, Child, ExperimentSession = init_models(db)
+    
+    # Rendre les modèles disponibles globalement
+    app.User = User
+    app.Child = Child
+    app.ExperimentSession = ExperimentSession
 
-     User, Child, ExperimentSession = init_models(db)
 
- # Rendre les modèles disponibles globalement
-app.User = User
-app.Child = Child
-app.ExperimentSession = ExperimentSession
+# --- ROUTES LIVEKIT (AVANT LES BLUEPRINTS) ---
+@app.route('/api/token', methods=['POST'])
+def get_livekit_token():
+    """Route appelée par Flutter pour obtenir un token LiveKit."""
+    try:
+        data = request.get_json()
+        
+        if not data:
+            return jsonify({"error": "No JSON data provided"}), 400
+        
+        identity = data.get('identity')  # Attend 'client_1' ou 'praticien_1'
 
-# Enregistrer les routes
+        if not identity:
+            return jsonify({"error": "Identity is required"}), 400
+
+        token = generate_livekit_token(identity)
+        app.logger.info(f"Token LiveKit généré pour: {identity}")
+        
+        return jsonify({"token": token}), 200
+        
+    except Exception as e:
+        app.logger.error(f"Erreur lors de la génération du token LiveKit: {e}")
+        return jsonify({"error": f"Erreur interne: {str(e)}"}), 500
+
+
+@app.route('/hello', methods=['GET'])
+def hello_message():
+    """Route de test pour la connexion Flutter"""
+    return jsonify({
+        'message': 'Hello from Flask! La connexion a réussi.', 
+        'code': 200
+    }), 200
+
+
+@app.route('/test')
+def test_page():
+    """Page de test HTML"""
+    return send_from_directory('static', 'test.html')
+
+
+# Enregistrer les blueprints APRÈS les routes principales
 from routes.index import index_bp
 from routes.auth import auth_bp
 
 app.register_blueprint(index_bp, url_prefix='/api')
 app.register_blueprint(auth_bp, url_prefix='/api/auth')
 
-# --- ENDPOINT POUR LIVEKIT ---
-@app.route('/api/token', methods=['POST'])
-def get_livekit_token():
-    """Route appelée par Flutter pour obtenir un token LiveKit."""
-    data = request.get_json()
-    identity = data.get('identity') # Attend 'client_1' ou 'praticien_1'
 
-    if not identity:
-        # Si 'identity' est manquant, renvoie une erreur
-        return jsonify({"error": "Identity is required"}), 400
-
-    try:
-        token = generate_livekit_token(identity)
-        # Renvoie le token à l'application Flutter
-        return jsonify({"token": token}), 200 
-    except Exception as e:
-        app.logger.error(f"Erreur lors de la génération du token LiveKit: {e}")
-        return jsonify({"error": "Erreur interne lors de la création du token"}), 500
-
-
-@app.route('/test')
-def test_page():
-    # ... (code existant) ...
-     return send_from_directory('static', 'test.html')
-
-@app.route('/hello', methods=['GET'])
-def hello_message():
-    # ... (code existant) ...
-     """Route de test pour la connexion Flutter"""
-     return jsonify({
-        # Le client Flutter attend cette clé 'message' !
-        'message': 'Hello from Flask! La connexion a réussi.', 
-        'code': 200
-    }), 200
 # GESTIONNAIRES D'ERREURS JWT
-
 @jwt.expired_token_loader
 def expired_token_callback(jwt_header, jwt_payload):
     return jsonify({'message': 'Le token a expiré', 'error': 'token_expired'}), 401
@@ -108,7 +115,6 @@ def missing_token_callback(error):
 
 
 # INITIALISATION DB
-
 def init_db():
     with app.app_context():
         db.create_all()
@@ -124,7 +130,12 @@ def init_db():
 
 
 # DÉMARRAGE
-
 if __name__ == '__main__':
     init_db()
+    print("=" * 50)
+    print("Flask Server démarré sur http://0.0.0.0:5000")
+    print("Endpoints LiveKit:")
+    print("  - POST /api/token (génération token)")
+    print("  - GET  /hello (test connexion)")
+    print("=" * 50)
     app.run(debug=True, host='0.0.0.0', port=5000)
