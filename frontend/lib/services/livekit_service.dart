@@ -52,21 +52,16 @@ class LiveKitService extends ChangeNotifier {
 
     // B. Connexion à la salle LiveKit avec le token
     try {
-      _room = Room();
-      
-      // 🔧 Configuration de l'écoute des événements AVANT la connexion
-      _room!.addListener(_onRoomDidUpdate);
-      
-      // 🔧 Connexion avec les options de capture
-      await _room!.connect(
-        livekitUrl, 
-        token!,
+      _room = Room(
         roomOptions: const RoomOptions(
-        defaultCameraCaptureOptions: CameraCaptureOptions(
-            maxFrameRate: 30, 
+          defaultCameraCaptureOptions: CameraCaptureOptions(
+            maxFrameRate: 30,
           ),
         ),
-      );
+    );
+      // 🔧 Configuration de l'écoute des événements AVANT la connexion
+      _room!.addListener(_onRoomDidUpdate);
+      await _room!.connect(livekitUrl, token!);
       
       notifyListeners();
       print('✅ LiveKit connecté en tant que $identity');
