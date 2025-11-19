@@ -1,6 +1,6 @@
 from flask import Flask, jsonify, request, send_from_directory # Ajout de 'request'
 from flask_restful import Api
-from livekit import AccessToken, VideoGrants
+from livekit.protocol import AccessToken, VideoGrants 
 from config import config
 from extensions import db, jwt, cors
 
@@ -16,7 +16,6 @@ api = Api(app)
 jwt.init_app(app)
 cors.init_app(app)
 
-# --- 🚨 NOUVELLE CONFIGURATION LIVEKIT ---
 # Utilisez ces clés car votre serveur LiveKit est lancé avec --dev
 LIVEKIT_API_KEY = "devkey"
 LIVEKIT_API_SECRET = "secret"
@@ -57,7 +56,7 @@ from routes.auth import auth_bp
 app.register_blueprint(index_bp, url_prefix='/api')
 app.register_blueprint(auth_bp, url_prefix='/api/auth')
 
-# --- 🚨 NOUVEL ENDPOINT POUR LIVEKIT ---
+# --- ENDPOINT POUR LIVEKIT ---
 @app.route('/api/token', methods=['POST'])
 def get_livekit_token():
     """Route appelée par Flutter pour obtenir un token LiveKit."""
