@@ -1,25 +1,29 @@
 // lib/services/livekit_service.dart
 
 import 'dart:convert';
-import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:livekit_client/livekit_client.dart';
 
-// 🚨 URL du serveur LiveKit (défini dans main.dart)
+// --- CONFIGURATION DE L'INFRASTRUCTURE ---
+// LiveKit Server (Port 7880 par défaut, via machine hôte)
 const String livekitUrl = 'ws://10.0.2.2:7880'; 
-// 🚨 URL du serveur Flask pour les tokens
+// Flask Token Server (Port 5000)
 const String tokenServerUrl = 'http://10.0.2.2:5000/api/token'; 
 
 class LiveKitService extends ChangeNotifier {
+  // Propriétés (privées)
   Room? _room;
   String? _error;
-  
-  // Pistes vidéo gérées par le service
-  VideoTrack? localTrack; // Piste vidéo publiée par cet utilisateur
-  VideoTrack? remoteTrack; // Piste vidéo reçue du pair (le Client ou le Praticien)
+  VideoTrack? localTrack;
+  VideoTrack? remoteTrack;
 
+  // Accesseurs (publics)
   Room? get room => _room;
   String? get error => _error;
+  
+  // Constructeur simple
+  LiveKitService();
 
   // --- 1. RÉCUPÉRATION DU TOKEN ET CONNEXION À LIVEKIT ---
   Future<void> joinRoom(String identity) async {
@@ -37,7 +41,8 @@ class LiveKitService extends ChangeNotifier {
       if (response.statusCode == 200) {
         token = jsonDecode(response.body)['token'];
       } else {
-        throw Exception('Échec de la récupération du token : ${jsonDecode(response.body)['error']}');
+        final errorData = jsonDecode(response.body);
+        throw Exception('Échec du token (Code ${response.statusCode}): ${errorData['error']}');
       }
     } catch (e) {
       _error = 'Erreur Flask/Token: $e';
@@ -45,19 +50,23 @@ class LiveKitService extends ChangeNotifier {
       return;
     }
 
-    // B. Connexion à la salle LiveKit
+    // B. Connexion à la salle LiveKit avec le token
     try {
-      _room = Room(
-        // Configuration minimale pour la connexion
-        defaultCameraCaptureOptions: const CameraCaptureOptions(
-      // La résolution est définie en tant que propriété 'dimensions'
-      dimensions: VideoDimensions(640, 480), // 🚨 2. VideoDimensions prend deux arguments positionnels
-      cameraPosition: CameraPosition.front,
+      _room = Room();
+      
+      // 🔧 Configuration de l'écoute des événements AVANT la connexion
+      _room!.addListener(_onRoomDidUpdate);
+      
+      // 🔧 Connexion avec les options de capture
+      await _room!.connect(
+        livekitUrl, 
+        token!,
+        roomOptions: const RoomOptions(
+        defaultCameraCaptureOptions: CameraCaptureOptions(
+            maxFrameRate: 30, 
+          ),
         ),
       );
-      _room!.addListener(_onRoomEvent);
-      
-      _room!.events.listen(_onRoomEvent);
       
       notifyListeners();
       print('✅ LiveKit connecté en tant que $identity');
@@ -71,44 +80,76 @@ class LiveKitService extends ChangeNotifier {
   }
 
   // --- 2. GESTION DES ÉVÉNEMENTS DANS LA SALLE ---
-  void _onRoomEvent(RoomEvent event) {
-    if (event is TrackSubscribedEvent) {
-      // Un participant distant a publié une piste (la vidéo du Client ou du Praticien)
-      if (event.participant is RemoteParticipant && event.track is VideoTrack) {
-        remoteTrack = event.track as VideoTrack;
-        print('Vidéo distante souscrite !');
-        notifyListeners();
-      }
-    } 
-    // Quand l'utilisateur publie sa propre piste locale
-    } else if (event is LocalTrackPublishedEvent) {
-    // La piste est maintenant accessible via la propriété 'publication'
-    if (event.publication.track is VideoTrack) { 
-        localTrack = event.publication.track as VideoTrack;
-        print('Vidéo locale publiée.');
-        notifyListeners();
+  void _onRoomDidUpdate() {
+    // 🔧 Récupération des tracks depuis les participants
+    
+    // Vidéo locale
+    final localVideoTrack = _room?.localParticipant?.videoTrackPublications
+        .where((pub) => pub.track != null)
+        .map((pub) => pub.track as VideoTrack)
+        .firstOrNull;
+    
+    if (localVideoTrack != localTrack) {
+      localTrack = localVideoTrack;
+      print('Vidéo locale mise à jour');
+      notifyListeners();
     }
-}
-    // Gérer la déconnexion, etc.
-    else if (event is RoomDisconnectedEvent || event is ParticipantDisconnectedEvent) {
-      print('Déconnexion détectée.');
-      remoteTrack = null;
-      localTrack = null;
+
+    // Vidéo distante (premier participant distant trouvé)
+    final remoteParticipants = _room?.remoteParticipants.values.toList() ?? [];
+    VideoTrack? newRemoteTrack;
+    
+    for (var participant in remoteParticipants) {
+      final videoTrack = participant.videoTrackPublications
+          .where((pub) => pub.subscribed && pub.track != null)
+          .map((pub) => pub.track as VideoTrack)
+          .firstOrNull;
+      
+      if (videoTrack != null) {
+        newRemoteTrack = videoTrack;
+        break;
+      }
+    }
+    
+    if (newRemoteTrack != remoteTrack) {
+      remoteTrack = newRemoteTrack;
+      print('Vidéo distante mise à jour');
       notifyListeners();
     }
   }
 
   // --- 3. PUBLICATION VIDÉO ---
   Future<void> publishLocalVideo() async {
-      await _room!.localParticipant?.setCameraEnabled(true);
+    if (_room?.localParticipant == null) {
+      print('⚠️ Pas de participant local');
+      return;
+    }
+    
+    try {
+      await _room!.localParticipant!.setCameraEnabled(true);
+      print('📹 Caméra activée');
+    } catch (e) {
+      print('❌ Erreur activation caméra: $e');
+      _error = 'Erreur activation caméra: $e';
+      notifyListeners();
+    }
   }
-  
+
   // --- 4. DÉCONNEXION ---
   Future<void> disconnect() async {
+    _room?.removeListener(_onRoomDidUpdate);
     await _room?.disconnect();
+    await _room?.dispose();
     _room = null;
     localTrack = null;
     remoteTrack = null;
     notifyListeners();
+  }
+
+  // 🔧 Nettoyage lors de la destruction du service
+  @override
+  void dispose() {
+    disconnect();
+    super.dispose();
   }
 }
