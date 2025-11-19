@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http; // Import du package HTTP
 import 'dart:convert'; // Pour convertir JSON en objets Dart
 import '../pages/login_page.dart'; // Import de la page de connexion
-import 'package:camera/camera.dart'; // Import du package camera
 import '../widgets/app_bar.dart';
 import 'package:frontend/pages/client_page.dart';
 
